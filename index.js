@@ -199,66 +199,6 @@ app.get("/api/users/:_id/logs", function (req, res) {
   });
 });
 
-app.get("/api/users/:_id/logs", function (req, res) {
-  let userId = req.params._id;
-  let findConditions = { userId: userId };
-
-  if (
-    (req.query.from !== undefined && req.query.from !== "") ||
-    (req.query.to !== undefined && req.query.to !== "")
-  ) {
-    findConditions.date = {};
-
-    if (req.query.from !== undefined && req.query.from !== "") {
-      findConditions.date.$gte = new Date(req.query.from);
-    }
-
-    if (findConditions.date.$gte == "Invalid Date") {
-      return res.json({ error: "from date is invalid" });
-    }
-
-    if (req.query.to !== undefined && req.query.to !== "") {
-      findConditions.date.$lte = new Date(req.query.to);
-    }
-
-    if (findConditions.date.$lte == "Invalid Date") {
-      return res.json({ error: "to date is invalid" });
-    }
-  }
-
-  let limit = req.query.limit !== undefined ? parseInt(req.query.limit) : 0;
-
-  if (isNaN(limit)) {
-    return res.json({ error: "limit is not a number" });
-  }
-
-  ExerciseUsers.findById(userId, function (err, data) {
-    if (!err && data !== null) {
-      Exercises.find(findConditions)
-        .sort({ date: "asc" })
-        .limit(limit)
-        .exec(function (err2, data2) {
-          if (!err2) {
-            return res.json({
-              _id: data["_id"],
-              username: data["username"],
-              log: data2.map(function (e) {
-                return {
-                  description: e.description,
-                  duration: e.duration,
-                  date: new Date(e.date).toDateString(),
-                };
-              }),
-              count: data2.length,
-            });
-          }
-        });
-    } else {
-      return res.json({ error: "user not found" });
-    }
-  });
-});
-
 app.use((req, res, next) => {
   return next({ status: 404, message: "not found" });
 });
